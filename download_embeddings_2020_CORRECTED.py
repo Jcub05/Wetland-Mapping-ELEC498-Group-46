@@ -44,7 +44,8 @@ print("LOADING 2020 EMBEDDINGS...")
 print("="*70)
 
 dataset = ee.ImageCollection('GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL')
-embeddings = dataset.filterDate('2020-01-01', '2021-01-01').filterBounds(aoi).first()
+# CRITICAL FIX: Use .mosaic() instead of .first() to get ALL 2020 images combined
+embeddings = dataset.filterDate('2020-01-01', '2021-01-01').filterBounds(aoi).mosaic()
 
 # VALIDATE: Check if data exists
 print("\nValidating data availability...")

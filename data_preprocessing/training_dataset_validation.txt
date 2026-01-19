@@ -1,0 +1,69 @@
+======================================================================
+TRAINING DATASET VALIDATION REPORT
+======================================================================
+File: wetland_dataset_1.5M_4Training.npz
+
+File size: 125.87 MB
+
+Arrays in file: ['X', 'y', 'class_weights']
+
+X:
+  Shape: (1519225, 64)
+  Type: float32
+  Size: 370.90 MB
+  Has NaN: False
+  Has Inf: False
+  Min: -0.4983
+  Max: 0.4656
+  Mean: -0.0050
+  Std: 0.1249
+  All-zero samples: 0 (0.00%)
+
+y:
+  Shape: (1519225,)
+  Type: int64
+  Size: 11.59 MB
+  Unique classes: [0 1 2 3 4 5]
+
+  Class Distribution:
+    Class 0: 600,000 samples (39.49%)
+    Class 1: 19,225 samples (1.27%)
+    Class 2: 150,000 samples (9.87%)
+    Class 3: 500,000 samples (32.91%)
+    Class 4: 150,000 samples (9.87%)
+    Class 5: 100,000 samples (6.58%)
+
+class_weights:
+  Shape: (6,)
+  Type: float32
+  Size: 0.00 MB
+  Class Weights:
+    Class 0: 0.1266
+    Class 1: 3.9498
+    Class 2: 0.5062
+    Class 3: 0.1519
+    Class 4: 0.5062
+    Class 5: 0.7593
+
+======================================================================
+VALIDATION CHECKS
+======================================================================
+✅ PASS: No NaN values in embeddings
+✅ PASS: No Inf values in embeddings
+✅ PASS: X and y aligned (1,519,225 samples)
+✅ PASS: Correct number of features (64)
+✅ PASS: All 6 classes (0-5) present
+✅ PASS: Class weights included
+✅ PASS: Values in reasonable range [-0.4983, 0.4656]
+
+======================================================================
+FINAL SCORE: 7/7 checks passed
+======================================================================
+
+🎉 DATASET IS READY FOR TRAINING!
+
+Next steps:
+  1. Split into train/val/test sets
+  2. Use class_weights in loss function:
+     nn.CrossEntropyLoss(weight=class_weights)
+  3. Start training your wetland classification model!

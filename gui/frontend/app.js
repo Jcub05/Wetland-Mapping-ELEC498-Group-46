@@ -15,18 +15,11 @@ const CONFIG = {
 };
 
 // State
-let currentFile = null;
 let classificationResults = null;
 let map = null;
 let chart = null;
 
 // DOM Elements
-const uploadZone = document.getElementById('uploadZone');
-const fileInput = document.getElementById('fileInput');
-const fileInfo = document.getElementById('fileInfo');
-const fileName = document.getElementById('fileName');
-const fileSize = document.getElementById('fileSize');
-const classifyBtn = document.getElementById('classifyBtn');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const progressFill = document.getElementById('progressFill');
 const resultsSection = document.getElementById('resultsSection');
@@ -40,39 +33,12 @@ const exportPNG = document.getElementById('exportPNG');
 function init() {
     setupEventListeners();
     initializeMap();
+    fetchResults();
     console.log('🌿 Wetland Mapping Application Initialized');
 }
 
 // Event Listeners
 function setupEventListeners() {
-    // Upload Zone Click
-    uploadZone.addEventListener('click', () => fileInput.click());
-    
-    // File Input Change
-    fileInput.addEventListener('change', handleFileSelect);
-    
-    // Drag and Drop
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('dragover');
-    });
-    
-    uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('dragover');
-    });
-    
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFileSelect({ target: { files } });
-        }
-    });
-    
-    // Classify Button
-    classifyBtn.addEventListener('click', handleClassify);
-    
     // Export Buttons
     exportCSV.addEventListener('click', () => exportResults('csv'));
     exportJSON.addEventListener('click', () => exportResults('json'));
@@ -86,87 +52,51 @@ function initializeMap() {
         zoom: CONFIG.MAP_ZOOM,
         zoomControl: true
     });
-    
+
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
-    
+
     // Add marker for Bow River Basin
     const marker = L.marker(CONFIG.MAP_CENTER).addTo(map);
     marker.bindPopup('<strong>Bow River Basin</strong><br>Alberta, Canada');
 }
 
-// File Handling
-function handleFileSelect(event) {
-    const file = event.target.files[0];
-    
-    if (!file) return;
-    
-    if (!file.name.endsWith('.npz') && !file.name.endsWith('.npy')) {
-        showNotification('Please upload a valid .npz or .npy file', 'error');
-        return;
-    }
-    
-    currentFile = file;
-    
-    // Update UI
-    fileName.textContent = file.name;
-    fileSize.textContent = formatFileSize(file.size);
-    fileInfo.classList.remove('hidden');
-    classifyBtn.disabled = false;
-    
-    console.log('📁 File selected:', file.name);
-}
-
-// Classification
-async function handleClassify() {
-    if (!currentFile) return;
-    
+// Fetch Classification Results from Backend
+async function fetchResults() {
     try {
         showLoading(true);
         updateProgress(10);
-        
+
         const startTime = performance.now();
-        
-        // Prepare form data
-        const formData = new FormData();
-        formData.append('file', currentFile);
-        
+
         updateProgress(30);
-        
-        // Make API request
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/predict`, {
-            method: 'POST',
-            body: formData
-        });
-        
+
+        const response = await fetch(`${CONFIG.API_BASE_URL}/api/results`);
+
         updateProgress(70);
-        
+
         if (!response.ok) {
-            throw new Error('Classification failed. Please check if the backend server is running.');
+            throw new Error('Could not load results. Please check if the backend server is running.');
         }
-        
+
         const results = await response.json();
         const endTime = performance.now();
         const processingTime = ((endTime - startTime) / 1000).toFixed(2);
-        
+
         updateProgress(100);
-        
-        // Store results
+
         classificationResults = {
             ...results,
             processingTime
         };
-        
-        // Display results
+
         displayResults(classificationResults);
-        
-        showNotification('Classification completed successfully!', 'success');
-        
+
     } catch (error) {
-        console.error('Classification error:', error);
+        console.error('Error fetching results:', error);
         showNotification(error.message, 'error');
     } finally {
         showLoading(false);
@@ -177,12 +107,12 @@ async function handleClassify() {
 function displayResults(results) {
     // Show results section
     resultsSection.classList.add('active');
-    
+
     // Update statistics
     document.getElementById('statTotal').textContent = formatNumber(results.total_samples || 0);
     document.getElementById('statAccuracy').textContent = results.confidence ? `${(results.confidence * 100).toFixed(1)}%` : 'N/A';
     document.getElementById('statTime').textContent = `${results.processingTime}s`;
-    
+
     // Update legend with class distribution
     if (results.class_distribution) {
         Object.keys(results.class_distribution).forEach(classId => {
@@ -194,28 +124,28 @@ function displayResults(results) {
             }
         });
     }
-    
+
     // Update chart
     updateChart(results.class_distribution);
-    
+
     // Update map visualization
     showMapVisualization(results);
-    
+
     console.log('✅ Results displayed');
 }
 
 // Update Chart
 function updateChart(distribution) {
     const ctx = document.getElementById('distributionChart');
-    
+
     if (chart) {
         chart.destroy();
     }
-    
+
     const labels = Object.keys(CONFIG.WETLAND_CLASSES).map(id => CONFIG.WETLAND_CLASSES[id].name);
     const data = Object.keys(CONFIG.WETLAND_CLASSES).map(id => distribution[id] || 0);
     const colors = Object.keys(CONFIG.WETLAND_CLASSES).map(id => CONFIG.WETLAND_CLASSES[id].color);
-    
+
     chart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -245,7 +175,7 @@ function updateChart(distribution) {
                     padding: 12,
                     displayColors: true,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             return `Count: ${formatNumber(context.parsed.y)}`;
                         }
                     }
@@ -259,7 +189,7 @@ function updateChart(distribution) {
                     },
                     ticks: {
                         color: '#7885a3',
-                        callback: function(value) {
+                        callback: function (value) {
                             return formatNumber(value);
                         }
                     }
@@ -281,17 +211,14 @@ function updateChart(distribution) {
 function showMapVisualization(results) {
     mapPlaceholder.classList.add('hidden');
     mapElement.classList.remove('hidden');
-    
+
     // Invalidate size to ensure proper rendering
     setTimeout(() => {
         map.invalidateSize();
     }, 100);
-    
+
     // Add classification overlay (simplified visualization)
-    // In a real implementation, this would render actual classified tiles
     if (results.predictions && results.coordinates) {
-        // Create a heat map or marker cluster based on classification results
-        // For now, we'll add a simple info popup
         const infoPopup = L.popup()
             .setLatLng(CONFIG.MAP_CENTER)
             .setContent(`
@@ -302,7 +229,7 @@ function showMapVisualization(results) {
             `)
             .openOn(map);
     }
-    
+
     console.log('🗺️ Map visualization updated');
 }
 
@@ -312,9 +239,9 @@ function exportResults(format) {
         showNotification('No results to export', 'error');
         return;
     }
-    
+
     let content, filename, mimeType;
-    
+
     if (format === 'csv') {
         content = generateCSV(classificationResults);
         filename = 'wetland_classification.csv';
@@ -324,38 +251,29 @@ function exportResults(format) {
         filename = 'wetland_classification.json';
         mimeType = 'application/json';
     }
-    
+
     downloadFile(content, filename, mimeType);
     showNotification(`Exported as ${format.toUpperCase()}`, 'success');
 }
 
 function generateCSV(results) {
     let csv = 'Class ID,Class Name,Sample Count,Percentage\n';
-    
+
     Object.keys(CONFIG.WETLAND_CLASSES).forEach(classId => {
         const count = results.class_distribution[classId] || 0;
         const percentage = ((count / results.total_samples) * 100).toFixed(2);
         const className = CONFIG.WETLAND_CLASSES[classId].name;
         csv += `${classId},${className},${count},${percentage}%\n`;
     });
-    
+
     return csv;
 }
 
 function exportMapImage() {
     showNotification('Map export functionality coming soon!', 'info');
-    // This would use leaflet-image or similar library to export the map
 }
 
 // Utility Functions
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-}
-
 function formatNumber(num) {
     return new Intl.NumberFormat('en-US').format(num);
 }
@@ -376,12 +294,8 @@ function updateProgress(percent) {
 }
 
 function showNotification(message, type = 'info') {
-    // Simple console notification for now
-    // In production, this would show a toast notification
     const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
     console.log(`${icon} ${message}`);
-    
-    // Could implement a toast notification here
     alert(message);
 }
 
@@ -402,27 +316,4 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
     init();
-}
-
-// Demo mode for testing without backend
-const DEMO_MODE = false;
-
-if (DEMO_MODE) {
-    // Simulate classification results for testing
-    setTimeout(() => {
-        classificationResults = {
-            total_samples: 150000,
-            confidence: 0.87,
-            processingTime: '2.35',
-            class_distribution: {
-                0: 45000,
-                1: 32000,
-                2: 28000,
-                3: 18000,
-                4: 15000,
-                5: 12000
-            }
-        };
-        displayResults(classificationResults);
-    }, 2000);
 }

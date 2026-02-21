@@ -6,6 +6,9 @@ __pycache__/
 # Training dataset npz
 *.npz
 
+# Random Forest model files
+*.pkl
+
 # C extensions
 *.so
 

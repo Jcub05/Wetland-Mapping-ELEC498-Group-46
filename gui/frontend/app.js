@@ -9,9 +9,10 @@ const CONFIG = {
         4: { name: 'Bog', color: '#faa61a' },
         5: { name: 'Open Water', color: '#ee5a6f' }
     },
-    // Bow River Basin coordinates
+    // Bow River Basin fallback coordinates (used only if GeoTIFF bounds unavailable)
     MAP_CENTER: [51.0447, -114.0719],
-    MAP_ZOOM: 10
+    MAP_ZOOM: 10,
+    GEOTIFF_URL: 'http://localhost:5000/api/geotiff'
 };
 
 // State
@@ -207,30 +208,72 @@ function updateChart(distribution) {
     });
 }
 
-// Show Map Visualization
-function showMapVisualization(results) {
+// Hex colour string → [r, g, b] array (values 0-255)
+function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return [r, g, b];
+}
+
+// Build a lookup: class id (0-5) → [r, g, b]
+const CLASS_COLORS = Object.fromEntries(
+    Object.entries(CONFIG.WETLAND_CLASSES).map(([id, cls]) => [Number(id), hexToRgb(cls.color)])
+);
+
+// Active GeoRasterLayer reference (kept so we can remove/replace it)
+let geotiffLayer = null;
+
+// Show Map Visualization — fetches GeoTIFF and renders it on the Leaflet map
+async function showMapVisualization(results) {
     mapPlaceholder.classList.add('hidden');
     mapElement.classList.remove('hidden');
 
-    // Invalidate size to ensure proper rendering
-    setTimeout(() => {
-        map.invalidateSize();
-    }, 100);
+    setTimeout(() => map.invalidateSize(), 100);
 
-    // Add classification overlay (simplified visualization)
-    if (results.predictions && results.coordinates) {
-        const infoPopup = L.popup()
-            .setLatLng(CONFIG.MAP_CENTER)
-            .setContent(`
-                <div style="text-align: center;">
-                    <strong>Classification Complete</strong><br>
-                    <small>${formatNumber(results.total_samples)} samples processed</small>
-                </div>
-            `)
-            .openOn(map);
+    if (!results.geotiff_ready) {
+        console.warn('⚠️ GeoTIFF not ready — skipping map overlay');
+        return;
     }
 
-    console.log('🗺️ Map visualization updated');
+    try {
+        console.log('🗺️ Fetching GeoTIFF from backend...');
+        const response = await fetch(CONFIG.GEOTIFF_URL);
+        if (!response.ok) throw new Error(`GeoTIFF fetch failed: ${response.status}`);
+
+        const arrayBuffer = await response.arrayBuffer();
+        const georaster = await parseGeoraster(arrayBuffer);
+
+        // Remove previous overlay if re-rendering
+        if (geotiffLayer) {
+            map.removeLayer(geotiffLayer);
+        }
+
+        geotiffLayer = new GeoRasterLayer({
+            georaster,
+            opacity: 0.75,
+            pixelValuesToColorFn: (values) => {
+                const classId = values[0];
+                // 255 = nodata — render as transparent
+                if (classId === 255 || classId === undefined) return null;
+                const rgb = CLASS_COLORS[classId];
+                if (!rgb) return null;
+                return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+            },
+            resolution: 256,  // tile resolution (pixels); higher = sharper but slower
+        });
+
+        geotiffLayer.addTo(map);
+
+        // Fit the map view to the raster's actual geographic extent
+        map.fitBounds(geotiffLayer.getBounds());
+
+        console.log('✅ GeoTIFF overlay rendered on map');
+
+    } catch (err) {
+        console.error('❌ GeoTIFF overlay failed:', err);
+        showNotification('Could not render map overlay: ' + err.message, 'error');
+    }
 }
 
 // Export Results

@@ -1,26 +1,28 @@
 """
-app.py — Flask backend server for the Wetland Mapping GUI.
+app.py — Static Flask backend server for the Wetland Mapping GUI.
 
 Endpoints:
   GET /api/health    — liveness check
-  GET /api/results   — JSON stats (class distribution, accuracy, etc.)
-  GET /api/geotiff   — streams the predictions GeoTIFF for the Leaflet map
+  GET /api/results   — JSON stats (class distribution from the pre-computed GeoTIFF)
+  GET /api/geotiff   — streams the pre-computed GeoTIFF for the Leaflet map
 
 Run with:
   python app.py
 
-The first request to /api/results triggers inference (can take several minutes
-depending on dataset size). Subsequent calls are served from an in-memory cache.
+This backend expects the model to be run offline, producing a GeoTIFF.
+It serves that pre-computed GeoTIFF directly to the frontend.
 """
 
 import logging
 import os
+from collections import Counter
 
 from flask import Flask, jsonify, send_file, abort
 from flask_cors import CORS
+import rasterio
+import numpy as np
 
 import config
-import predict
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -34,6 +36,35 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)  # Allow browser frontend to reach this server
 
+# Module-level cache for stats
+_cached_stats = None
+
+def _get_stats():
+    global _cached_stats
+    if _cached_stats is not None:
+        return _cached_stats
+
+    logger.info(f"Computing stats from GeoTIFF: {config.GEOTIFF_PATH}")
+    if not os.path.exists(config.GEOTIFF_PATH):
+        raise FileNotFoundError(f"GeoTIFF not found: {config.GEOTIFF_PATH}")
+        
+    with rasterio.open(config.GEOTIFF_PATH) as src:
+        data = src.read(1)
+        
+    valid_mask = (data >= config.VALID_CLASS_MIN) & (data <= config.VALID_CLASS_MAX)
+    valid_pixels = data[valid_mask]
+    counts = Counter(int(v) for v in valid_pixels)
+    class_distribution = {str(k): counts.get(k, 0) for k in config.WETLAND_CLASSES}
+    total = int(valid_pixels.size)
+    
+    _cached_stats = {
+        'total_samples': total,
+        'class_distribution': class_distribution,
+        'confidence': None,     
+        'model_type': 'Pre-computed GeoTIFF',
+        'geotiff_ready': True,
+    }
+    return _cached_stats
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
@@ -45,55 +76,29 @@ def health():
 
 @app.route('/api/results')
 def results():
-    """
-    Return classification statistics as JSON.
-    Triggers inference on the first call; subsequent calls are instant.
-
-    Response shape:
-    {
-        "total_samples":      int,
-        "class_distribution": {"0": int, "1": int, ..., "5": int},
-        "confidence":         float | null,
-        "model_type":         str,
-        "geotiff_ready":      bool
-    }
-    """
+    """Return classification statistics as JSON."""
     try:
-        stats = predict.run_inference()
+        stats = _get_stats()
         return jsonify(stats)
     except FileNotFoundError as e:
         logger.error(str(e))
         abort(404, description=str(e))
     except Exception as e:
-        logger.exception("Inference failed")
+        logger.exception("Failed to get stats")
         abort(500, description=str(e))
 
 
 @app.route('/api/geotiff')
 def geotiff():
-    """
-    Stream the predictions GeoTIFF file.
-    The frontend fetches this as an ArrayBuffer and renders it via
-    georaster-layer-for-leaflet on the Leaflet map.
-    """
-    # Ensure inference has run (no-op if already cached)
-    try:
-        stats = predict.run_inference()
-    except Exception as e:
-        logger.exception("Inference failed before serving GeoTIFF")
-        abort(500, description=str(e))
-
-    if not stats.get('geotiff_ready'):
-        abort(503, description='GeoTIFF is not available — inference may have failed.')
-
-    if not os.path.exists(config.PREDICTIONS_TIFF):
-        abort(404, description='predictions.tif not found on disk.')
+    """Stream the pre-computed predictions GeoTIFF file."""
+    if not os.path.exists(config.GEOTIFF_PATH):
+        abort(404, description=f'{os.path.basename(config.GEOTIFF_PATH)} not found on disk.')
 
     return send_file(
-        config.PREDICTIONS_TIFF,
+        config.GEOTIFF_PATH,
         mimetype='image/tiff',
         as_attachment=False,
-        download_name='predictions.tif',
+        download_name=os.path.basename(config.GEOTIFF_PATH),
     )
 
 
@@ -101,28 +106,16 @@ def geotiff():
 def not_found(e):
     return jsonify({'error': str(e)}), 404
 
-
 @app.errorhandler(500)
 def internal_error(e):
     return jsonify({'error': str(e)}), 500
 
-
-@app.errorhandler(503)
-def service_unavailable(e):
-    return jsonify({'error': str(e)}), 503
-
-
 # ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     logger.info("=" * 60)
-    logger.info("Wetland Mapping Backend")
+    logger.info("Wetland Mapping Backend (Static GeoTIFF Mode)")
     logger.info("=" * 60)
-    logger.info(f"Model search paths: {config._MODEL_GLOBS}")
-    logger.info(f"Label raster:       {config.LABEL_RASTER_PATH}")
-    logger.info(f"Embeddings dir:     {config.EMBEDDINGS_DIR}")
-    logger.info(f"Output GeoTIFF:     {config.PREDICTIONS_TIFF}")
+    logger.info(f"Serving GeoTIFF: {config.GEOTIFF_PATH}")
     logger.info("=" * 60)
     logger.info("Starting server on http://localhost:5000")
-    logger.info("Inference will run on the first request to /api/results")
-    logger.info("=" * 60)
     app.run(host='0.0.0.0', port=5000, debug=False)

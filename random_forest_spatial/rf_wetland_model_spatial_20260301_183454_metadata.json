@@ -1,0 +1,121 @@
+{
+  "timestamp": "20260301_183454",
+  "trained_datetime": "2026-03-01 18:35:43",
+  "split_method": "mixed_spatial_split",
+  "test_col_max": 8192,
+  "note": "Mixed split: Classes 0,3,4,5 use geographic column tile split (test = tiles with col_offset < test_col_max). Classes 1 and 2 use random 75/25 within-zone split (geographically confined). Classes 1 and 2 splits are NOT geographically independent \u2014 documented limitation.",
+  "overall_metrics": {
+    "accuracy": 0.1951338314823884,
+    "precision_weighted": 0.3261298825330044,
+    "recall_weighted": 0.1951338314823884,
+    "f1_weighted": 0.16173835830140537
+  },
+  "per_class_metrics": {
+    "0": {
+      "precision": 0.21477078577479147,
+      "recall": 0.09972666666666667,
+      "f1_score": 0.13620698289559346,
+      "support": 150000
+    },
+    "1": {
+      "precision": 0.7816767502160761,
+      "recall": 0.9409071993341657,
+      "f1_score": 0.8539325842696629,
+      "support": 4806
+    },
+    "2": {
+      "precision": 0.13605133382236523,
+      "recall": 0.9990666666666667,
+      "f1_score": 0.23948937911107987,
+      "support": 37500
+    },
+    "3": {
+      "precision": 0.5962119895742832,
+      "recall": 0.137248,
+      "f1_score": 0.22313119817915786,
+      "support": 125000
+    },
+    "4": {
+      "precision": 0.2,
+      "recall": 0.00013333333333333334,
+      "f1_score": 0.0002664890073284477,
+      "support": 37500
+    },
+    "5": {
+      "precision": 0.030612244897959183,
+      "recall": 0.00024,
+      "f1_score": 0.0004762660739799968,
+      "support": 25000
+    }
+  },
+  "confusion_matrix": [
+    [
+      14959,
+      847,
+      129382,
+      4789,
+      10,
+      13
+    ],
+    [
+      0,
+      4522,
+      284,
+      0,
+      0,
+      0
+    ],
+    [
+      20,
+      15,
+      37465,
+      0,
+      0,
+      0
+    ],
+    [
+      43076,
+      203,
+      64414,
+      17156,
+      10,
+      141
+    ],
+    [
+      8783,
+      68,
+      22519,
+      6089,
+      5,
+      36
+    ],
+    [
+      2813,
+      130,
+      21310,
+      741,
+      0,
+      6
+    ]
+  ],
+  "hyperparameters": {
+    "n_estimators": 100,
+    "class_weight": "custom",
+    "n_jobs": -1,
+    "random_state": 42
+  },
+  "dataset": {
+    "source": "random_forest_spatial/wetland_dataset_smart_split.npz",
+    "n_train": 1514418,
+    "n_test": 379806,
+    "n_features": 64
+  },
+  "class_weights": {
+    "0": 0.10377992689609528,
+    "1": 4.318764686584473,
+    "2": 0.4151197075843811,
+    "3": 0.12453591823577881,
+    "4": 0.4151197075843811,
+    "5": 0.622679591178894
+  }
+}

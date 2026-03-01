@@ -1,5 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, precision_recall_fscore_support
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 import joblib
 import os
@@ -7,33 +8,56 @@ from datetime import datetime
 import json
 
 # ======================================
-# LOAD THE SPATIALLY-SPLIT DATASET
+# LOAD THE SMART-SPLIT DATASET
 # ======================================
-# This dataset was created by create_training_dataset_SPATIAL_SPLIT.ipynb
-# Train and test have ALREADY been split geographically (by tile region).
+# This dataset was created by create_training_dataset_SMART_SPLIT.ipynb.
+# Uses a MIXED split strategy:
+#   - Classes 0, 3, 4, 5: geographic column split (eastern tiles = train, western = test)
+#   - Classes 1 & 2: random 75/25 within their western zone (geographically confined)
 # DO NOT call train_test_split — that would re-introduce spatial leakage.
 
-data = np.load('../wetland_dataset_spatial_split.npz')
-X_train = data['X_train']   # pixels from TRAINING tiles only
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+data = np.load(os.path.join(SCRIPT_DIR, 'wetland_dataset_smart_split.npz'))
+X_train = data['X_train']   # pixels from training region
 y_train = data['y_train']
-X_test  = data['X_test']    # pixels from TEST tiles only (geographically separate)
+X_test  = data['X_test']    # pixels from test region (geographically separate for cls 0,3,4,5)
 y_test  = data['y_test']
 class_weights = data['class_weights']
-test_row_min  = int(data['test_row_min'])  # raster row where test region starts
+test_col_max  = int(data['test_col_max'])  # column threshold: tiles with col < this are test tiles
 data.close()
 
 print(f"Train: {X_train.shape[0]:,} samples | Test: {X_test.shape[0]:,} samples")
-print(f"Test region starts at row offset: {test_row_min}")
+print(f"Test region: tiles with col_offset < {test_col_max} (western ~22% of map)")
 print(f"Features: {X_train.shape[1]}")
+print(f"Train classes: {sorted(set(y_train.tolist()))}")
+print(f"Test  classes: {sorted(set(y_test.tolist()))}")
 
 # Convert class weights to dict
 class_weight_dict = {i: float(w) for i, w in enumerate(class_weights)}
+
+# Dampen Class 2 weight — it's geographically confined to the same western region
+# as the test set, causing the model to massively over-predict it.
+# Reducing its weight forces the model to compete with other classes.
+class_weight_dict[2] = class_weight_dict[2] * 0.3
+print(f"Adjusted class weights: {class_weight_dict}")
+
+# ======================================
+# FEATURE NORMALIZATION
+# ======================================
+# Standardize embedding dimensions to help the model generalize
+# across the geographic domain shift between eastern and western tiles.
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test  = scaler.transform(X_test)
+print("Features normalized with StandardScaler.")
 
 # ======================================
 # TRAIN THE MODEL
 # ======================================
 rf_model = RandomForestClassifier(
-    n_estimators=100,
+    n_estimators=200,       # more trees for stable predictions
+    max_depth=25,           # limit depth to prevent overfitting to eastern landscape
+    min_samples_leaf=20,    # smoother decision boundaries -> better geographic generalization
     random_state=42,
     class_weight=class_weight_dict,
     verbose=2,
@@ -74,16 +98,19 @@ timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 model_filename   = f'rf_wetland_model_spatial_{timestamp}.pkl'
 metadata_filename = f'rf_wetland_model_spatial_{timestamp}_metadata.json'
 
-joblib.dump(rf_model, model_filename)
+joblib.dump(rf_model, os.path.join(SCRIPT_DIR, model_filename))
+joblib.dump(scaler,   os.path.join(SCRIPT_DIR, f'rf_scaler_{timestamp}.pkl'))
 
 metadata = {
     'timestamp': timestamp,
     'trained_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-    'split_method': 'spatial_tile_holdout',
-    'test_row_min': test_row_min,
+    'split_method': 'mixed_spatial_split',
+    'test_col_max': test_col_max,
     'note': (
-        'Train/test split is geographic: test pixels come exclusively from '
-        'tiles with row_offset >= test_row_min. No spatial leakage.'
+        'Mixed split: Classes 0,3,4,5 use geographic column tile split '
+        '(test = tiles with col_offset < test_col_max). '
+        'Classes 1 and 2 use random 75/25 within-zone split (geographically confined). '
+        'Classes 1 and 2 splits are NOT geographically independent — documented limitation.'
     ),
     'overall_metrics': {
         'accuracy': float(accuracy),
@@ -102,13 +129,16 @@ metadata = {
     },
     'confusion_matrix': conf_matrix.tolist(),
     'hyperparameters': {
-        'n_estimators': 100,
-        'class_weight': 'custom',
+        'n_estimators': 200,
+        'max_depth': 25,
+        'min_samples_leaf': 20,
+        'class_weight': 'custom_with_class2_dampened_0.3x',
+        'feature_scaling': 'StandardScaler',
         'n_jobs': -1,
         'random_state': 42,
     },
     'dataset': {
-        'source': '../wetland_dataset_spatial_split.npz',
+        'source': 'random_forest_spatial/wetland_dataset_smart_split.npz',
         'n_train': int(X_train.shape[0]),
         'n_test':  int(X_test.shape[0]),
         'n_features': int(X_train.shape[1]),

@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Automated wetland classification using Google Earth Engine satellite embeddings and machine learning">
+    <meta name="description"
+        content="Automated wetland classification using Google Earth Engine satellite embeddings and machine learning">
     <title>Wetland Mapping | ELEC 498 Capstone</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Leaflet CSS for Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
     <!-- Custom Styles -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -31,7 +34,7 @@
                 </div>
                 <div class="team-info">
                     <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                        Jacob Badali • Connor Rewa • Max Marsland • Gavin Nyhof
+                        Jacob Badali | Connor Rewa | Max Marsland | Gavin Nyhof
                     </p>
                 </div>
             </div>
@@ -44,42 +47,13 @@
             <div class="grid">
                 <!-- Left Sidebar: Controls -->
                 <aside class="sidebar">
-                    <!-- Upload Section -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-icon">📁</div>
-                            <h3 class="card-title">Data Upload</h3>
-                        </div>
-                        
-                        <div class="upload-zone" id="uploadZone">
-                            <div class="upload-icon">☁️</div>
-                            <p><strong>Drop your data file here</strong></p>
-                            <p>or click to browse</p>
-                            <small>Supported: .npz files with 64-dimensional embeddings</small>
-                            <input type="file" id="fileInput" accept=".npz" style="display: none;">
-                        </div>
-                        
-                        <div id="fileInfo" class="hidden" style="margin-top: var(--space-md);">
-                            <div style="background: var(--bg-glass); padding: var(--space-sm); border-radius: var(--radius-sm); border: var(--border-glass);">
-                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: var(--space-xs);">Selected File:</p>
-                                <p id="fileName" style="font-weight: 600; word-break: break-all;"></p>
-                                <p id="fileSize" style="font-size: 0.875rem; color: var(--text-muted); margin-top: var(--space-xs);"></p>
-                            </div>
-                        </div>
-                        
-                        <button id="classifyBtn" class="btn btn-primary mt-lg" style="width: 100%;" disabled>
-                            <span>🔍</span>
-                            <span>Classify Wetlands</span>
-                        </button>
-                    </div>
-
                     <!-- Legend -->
-                    <div class="card mt-lg">
+                    <div class="card">
                         <div class="card-header">
                             <div class="card-icon">🗺️</div>
                             <h3 class="card-title">Wetland Classes</h3>
                         </div>
-                        
+
                         <div class="legend">
                             <div class="legend-item">
                                 <div class="legend-color" style="background: var(--wetland-0);"></div>
@@ -117,10 +91,9 @@
                     <!-- Model Info -->
                     <div class="card mt-lg">
                         <div class="card-header">
-                            <div class="card-icon">🤖</div>
                             <h3 class="card-title">Model Information</h3>
                         </div>
-                        
+
                         <div style="display: grid; gap: var(--space-sm);">
                             <div>
                                 <p style="font-size: 0.875rem; color: var(--text-muted);">Algorithm</p>
@@ -150,11 +123,11 @@
                             <div class="card-icon">🗺️</div>
                             <h3 class="card-title">Classification Map</h3>
                         </div>
-                        
+
                         <div class="map-container">
                             <div id="mapPlaceholder" class="map-placeholder">
                                 <div class="map-placeholder-icon">🌍</div>
-                                <p style="color: var(--text-secondary);">Upload data to view classification results</p>
+                                <p style="color: var(--text-secondary);">Loading classification results...</p>
                             </div>
                             <div id="map" class="hidden"></div>
                         </div>
@@ -168,7 +141,7 @@
                                 <div class="card-icon">📊</div>
                                 <h3 class="card-title">Classification Statistics</h3>
                             </div>
-                            
+
                             <div class="stats-grid">
                                 <div class="stat-card">
                                     <div class="stat-value" id="statTotal">-</div>
@@ -187,7 +160,7 @@
                                     <div class="stat-label">Processing Time</div>
                                 </div>
                             </div>
-                            
+
                             <!-- Chart Container -->
                             <div style="margin-top: var(--space-lg);">
                                 <canvas id="distributionChart"></canvas>
@@ -200,8 +173,9 @@
                                 <div class="card-icon">💾</div>
                                 <h3 class="card-title">Export Results</h3>
                             </div>
-                            
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-sm);">
+
+                            <div
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-sm);">
                                 <button class="btn btn-secondary" id="exportCSV">
                                     <span>📄</span>
                                     <span>Export CSV</span>
@@ -237,8 +211,12 @@
     <!-- External Libraries -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    
+    <!-- GeoTIFF rendering for Leaflet -->
+    <script src="https://unpkg.com/georaster"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
+
     <!-- Application JavaScript -->
     <script src="app.js"></script>
 </body>
+
 </html>

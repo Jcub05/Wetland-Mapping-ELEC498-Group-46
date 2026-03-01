@@ -3,7 +3,7 @@ import numpy as np
 from collections import defaultdict
 import os
 
-labels_file = "C:/Users/jcube/OneDrive/Desktop/Jacob/School/Queens/Year 5/ELEC 490 Capstone/GITHUB REPO/Wetland-Mapping-ELEC498-Group-46/bow_river_wetlands_10m_final.tif"
+labels_file = "C:/Users/jcube/OneDrive/Desktop/Jacob/School/Queens/Year 5/ELEC 490 Capstone/GITHUB REPO/Wetland-Mapping-ELEC498-Group-46/data_preprocessing/bow_river_wetlands_10m_final.tif"
 
 # If the file isn't local, we'll need to run this in Colab instead
 if not os.path.exists(labels_file):

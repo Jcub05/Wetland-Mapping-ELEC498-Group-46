@@ -1,0 +1,124 @@
+{
+  "timestamp": "20260301_185310",
+  "trained_datetime": "2026-03-01 18:53:12",
+  "split_method": "mixed_spatial_split",
+  "test_col_max": 8192,
+  "note": "Mixed split: Classes 0,3,4,5 use geographic column tile split (test = tiles with col_offset < test_col_max). Classes 1 and 2 use random 75/25 within-zone split (geographically confined). Classes 1 and 2 splits are NOT geographically independent \u2014 documented limitation.",
+  "overall_metrics": {
+    "accuracy": 0.16950759071736624,
+    "precision_weighted": 0.3062987724247943,
+    "recall_weighted": 0.16950759071736624,
+    "f1_weighted": 0.1278026822998842
+  },
+  "per_class_metrics": {
+    "0": {
+      "precision": 0.2051089688285382,
+      "recall": 0.07290666666666666,
+      "f1_score": 0.10757532535240362,
+      "support": 150000
+    },
+    "1": {
+      "precision": 0.12749511824690823,
+      "recall": 0.9781523096129837,
+      "f1_score": 0.225586640433802,
+      "support": 4806
+    },
+    "2": {
+      "precision": 0.14358943625394543,
+      "recall": 0.9583733333333333,
+      "f1_score": 0.24975850446506134,
+      "support": 37500
+    },
+    "3": {
+      "precision": 0.5766624203821656,
+      "recall": 0.090536,
+      "f1_score": 0.15650129645635263,
+      "support": 125000
+    },
+    "4": {
+      "precision": 0.1803305785123967,
+      "recall": 0.029093333333333332,
+      "f1_score": 0.05010332950631458,
+      "support": 37500
+    },
+    "5": {
+      "precision": 0.029008863819500404,
+      "recall": 0.01584,
+      "f1_score": 0.02049106103334972,
+      "support": 25000
+    }
+  },
+  "confusion_matrix": [
+    [
+      10936,
+      23486,
+      108578,
+      3632,
+      787,
+      2581
+    ],
+    [
+      0,
+      4701,
+      105,
+      0,
+      0,
+      0
+    ],
+    [
+      71,
+      1478,
+      35939,
+      7,
+      0,
+      5
+    ],
+    [
+      33443,
+      4199,
+      63588,
+      11317,
+      4000,
+      8453
+    ],
+    [
+      6839,
+      935,
+      22268,
+      4151,
+      1091,
+      2216
+    ],
+    [
+      2029,
+      2073,
+      19812,
+      518,
+      172,
+      396
+    ]
+  ],
+  "hyperparameters": {
+    "n_estimators": 200,
+    "max_depth": 25,
+    "min_samples_leaf": 20,
+    "class_weight": "custom_with_class2_dampened_0.3x",
+    "feature_scaling": "StandardScaler",
+    "n_jobs": -1,
+    "random_state": 42
+  },
+  "dataset": {
+    "source": "random_forest_spatial/wetland_dataset_smart_split.npz",
+    "n_train": 1514418,
+    "n_test": 379806,
+    "n_features": 64
+  },
+  "class_weights": {
+    "0": 0.10377992689609528,
+    "1": 4.318764686584473,
+    "2": 0.12453591227531433,
+    "3": 0.12453591823577881,
+    "4": 0.4151197075843811,
+    "5": 0.622679591178894
+  }
+}

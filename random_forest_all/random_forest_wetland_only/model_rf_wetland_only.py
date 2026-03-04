@@ -79,7 +79,13 @@ class_weight_dict = {
     for cls, count in zip(unique_classes, class_counts)
 }
 
-print(f"\nRecalculated class weights (Classes 1–5):")
+# Class 1 is very rare so its auto-calculated weight is very high,
+# causing 100% recall but poor precision (trigger-happy predictions).
+# Dampen it slightly to trade a little recall for better precision.
+CLASS1_DAMPEN = 0.5
+class_weight_dict[1] = class_weight_dict[1] * CLASS1_DAMPEN
+
+print(f"\nRecalculated class weights (Classes 1–5, Class 1 dampened x{CLASS1_DAMPEN}):")
 for cls, w in class_weight_dict.items():
     count = class_counts[list(unique_classes).index(cls)]
     print(f"  Class {cls}: weight={w:.4f}  (n={count:,})")
@@ -184,6 +190,7 @@ metadata = {
         'min_samples_leaf': 20,
         'feature_scaling':  'StandardScaler',
         'class_weight':     'recalculated_over_classes_1_to_5',
+        'class1_dampen_factor': CLASS1_DAMPEN,
         'n_jobs':           -1,
         'random_state':     42,
     },

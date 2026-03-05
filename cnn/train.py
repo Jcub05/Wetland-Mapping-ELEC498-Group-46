@@ -12,49 +12,75 @@ from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
-from cnn.models import PixelMLP
-from cnn.data import NPZPixelDataset
+# Import the new ResNet transfer learning model
+from cnn.models import ResNet18Wetland
+from cnn.data import NPZPatchDataset
 
 
 def main():
-    # Match how RF/SVM load the dataset (see random_forest/model_rf.py and SVM/model_svm_linear.py)
-    data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "wetland_dataset_1.5M_4Training.npz")
+    # Load the new geographically split 15x15 CNN dataset
+    data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wetland_cnn_dataset_15x15.npz")
+    
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"Could not find dataset at: {data_path}")
+        
+    print(f"Loading data from: {data_path}")
     data = np.load(data_path)
-    X = data["X"]          # (N, 64)
-    y = data["y"]          # (N,)
-    class_weights = data["class_weights"]  # (6,)
+    
+    # 1. Direct Assignment (No more training leakage!)
+    X_train = data["X_train"] 
+    y_train = data["y_train"]
+    class_weights = data["class_weights"]
+    
+    # 2. Split the validation tiles into Val and Test sets
+    X_val_tiles = data["X_val"]
+    y_val_tiles = data["y_val"]
+    
     data.close()
+    
+    X_val, X_test, y_val, y_test = train_test_split(
+        X_val_tiles, y_val_tiles, test_size=0.50, random_state=42, stratify=y_val_tiles
+    )
 
-    # Train/val/test split
-    X_train, X_tmp, y_train, y_tmp = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
-    X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=0.5, random_state=42, stratify=y_tmp)
+    print(f"Loaded X_train: {X_train.shape} | y_train: {y_train.shape}")
+    print(f"Loaded X_val:   {X_val.shape} | y_val:   {y_val.shape}")
+    print(f"Loaded X_test:  {X_test.shape} | y_test:  {y_test.shape}")
 
-    # Normalize using train stats only
-    mean = X_train.mean(axis=0)
-    std = X_train.std(axis=0)
+    # Normalize per-channel using train stats only
+    mean = X_train.mean(axis=(0, 2, 3))
+    std = X_train.std(axis=(0, 2, 3))
 
-    train_ds = NPZPixelDataset(X_train, y_train, mean=mean, std=std)
-    val_ds = NPZPixelDataset(X_val, y_val, mean=mean, std=std)
-    test_ds = NPZPixelDataset(X_test, y_test, mean=mean, std=std)
+    train_ds = NPZPatchDataset(X_train, y_train, mean=mean, std=std, is_train=True)
+    val_ds = NPZPatchDataset(X_val, y_val, mean=mean, std=std)
+    test_ds = NPZPatchDataset(X_test, y_test, mean=mean, std=std)
 
-    train_loader = DataLoader(train_ds, batch_size=4096, shuffle=True, num_workers=2, pin_memory=True)
-    val_loader = DataLoader(val_ds, batch_size=4096, shuffle=False, num_workers=2, pin_memory=True)
-    test_loader = DataLoader(test_ds, batch_size=4096, shuffle=False, num_workers=2, pin_memory=True)
+    # 15x15 patches are memory-light, allowing for much larger batch sizes
+    batch_size = 256 
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=2, pin_memory=True)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    print(f"Training on device: {device}")
 
-    model = PixelMLP(in_features=64, num_classes=6, hidden=256, dropout=0.2).to(device)
+    # Use the 15x15 optimized ResNet-18 Transfer Learning model
+    model = ResNet18Wetland(in_channels=64, num_classes=6, dropout=0.3).to(device)
 
-    # Use provided class weights (see Helper Files/training_dataset_validation.txt)
     cw = torch.tensor(class_weights, dtype=torch.float32, device=device)
     criterion = nn.CrossEntropyLoss(weight=cw)
-
+    
+    # Optimizer and Learning Rate Scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    
+    epochs = 15
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
     best_val_acc = -1.0
     best_state = None
 
-    for epoch in range(1, 11):
+    print(f"Starting training for {epochs} epochs...")
+    
+    for epoch in range(1, epochs + 1):
         model.train()
         total_loss = 0.0
 
@@ -74,8 +100,7 @@ def main():
 
         # Validate
         model.eval()
-        y_pred = []
-        y_true = []
+        y_pred, y_true = [], []
         with torch.no_grad():
             for xb, yb in val_loader:
                 xb = xb.to(device, non_blocking=True)
@@ -84,23 +109,25 @@ def main():
                 y_pred.append(pred)
                 y_true.append(yb.numpy())
 
-        y_pred = np.concatenate(y_pred)
-        y_true = np.concatenate(y_true)
-        val_acc = accuracy_score(y_true, y_pred)
+        val_acc = accuracy_score(np.concatenate(y_true), np.concatenate(y_pred))
 
-        print(f"Epoch {epoch:02d} | train_loss={train_loss:.4f} | val_acc={val_acc:.4f}")
+        current_lr = scheduler.get_last_lr()[0]
+        print(f"Epoch {epoch:02d} | train_loss={train_loss:.4f} | val_acc={val_acc:.4f} | lr={current_lr:.2e}")
+
+        # Step the learning rate scheduler
+        scheduler.step()
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
 
     # Test using best checkpoint
+    print("\nEvaluating on Test Set...")
     if best_state is not None:
         model.load_state_dict(best_state)
 
     model.eval()
-    y_pred = []
-    y_true = []
+    y_pred, y_true = [], []
     with torch.no_grad():
         for xb, yb in test_loader:
             xb = xb.to(device, non_blocking=True)
@@ -120,10 +147,10 @@ def main():
     print("\nCONFUSION MATRIX:\n", cm)
     print("\nREPORT:\n", report)
 
-    # Save model + metadata (similar pattern to random_forest/model_rf.py)
+    # Save model + metadata
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_model = os.path.join(os.path.dirname(__file__), f"pixel_mlp_v1_{timestamp}.pt")
-    out_meta = os.path.join(os.path.dirname(__file__), f"pixel_mlp_v1_{timestamp}_metadata.json")
+    out_model = os.path.join(os.path.dirname(__file__), f"wetland_cnn_v3_resnet_{timestamp}.pt")
+    out_meta = os.path.join(os.path.dirname(__file__), f"wetland_cnn_v3_resnet_{timestamp}_metadata.json")
 
     torch.save(
         {
@@ -137,19 +164,20 @@ def main():
 
     meta = {
         "timestamp": timestamp,
-        "model_type": "PixelMLP",
-        "input_features": 64,
+        "model_type": "ResNet18Wetland",
+        "input_channels": 64,
+        "patch_size": 15,
         "num_classes": 6,
         "best_val_acc": float(best_val_acc),
         "test_acc": float(acc),
-        "dataset": {"source": "../wetland_dataset_1.5M_4Training.npz"},
+        "optimizer": "AdamW_CosineAnnealingLR",
+        "dataset": {"source": "wetland_cnn_dataset_15x15.npz"},
     }
     with open(out_meta, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
     print(f"\nSaved: {out_model}")
     print(f"Saved: {out_meta}")
-
 
 if __name__ == "__main__":
     main()

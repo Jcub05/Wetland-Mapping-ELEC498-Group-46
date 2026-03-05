@@ -216,3 +216,7 @@ __marimo__/
 
 # Reports
 *.pdf
+
+# Trained Models
+*.pt
+*_metadata.json

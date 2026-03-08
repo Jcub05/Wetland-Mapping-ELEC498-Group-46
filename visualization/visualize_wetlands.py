@@ -54,8 +54,8 @@ CLASS_INFO = {
 }
 
 NODATA_VALUE = 255
-OVERLAY_ALPHA = 0.80   # opacity of wetland classes over the satellite
-MAX_PIXELS    = 5000   # max raster dimension -- downsamples if larger
+OVERLAY_ALPHA = 0.8   # opacity of wetland classes over the satellite
+MAX_PIXELS    = 10000   # max raster dimension -- downsamples if larger
 
 TARGET_CRS = "EPSG:3857"  # Web Mercator required by contextily
 
@@ -206,6 +206,20 @@ def visualize(tif_path, output_path, title, figsize, dpi, alpha, max_pixels):
     # Reset limits (contextily can shift them slightly)
     ax.set_xlim(west, east)
     ax.set_ylim(south, north)
+
+    # -- Study area boundary --
+    from matplotlib.patches import Rectangle
+    border_rect = Rectangle(
+        (west, south),
+        east - west,
+        north - south,
+        linewidth=2.0,
+        edgecolor="white",
+        facecolor="none",
+        linestyle="--",
+        zorder=5,
+    )
+    ax.add_patch(border_rect)
 
     # -- Legend --
     legend_patches = [

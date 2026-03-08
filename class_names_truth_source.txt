@@ -1,0 +1,8 @@
+CASE
+  WHEN "WetlandClass" = 'Fen (Graminoid)' THEN 1
+  WHEN "WetlandClass" = 'Fen (Woody)' THEN 2
+  WHEN "WetlandClass" = 'Marsh' THEN 3
+  WHEN "WetlandClass" = 'Shallow Open Water' THEN 4
+  WHEN "WetlandClass" = 'Swamp' THEN 5
+  ELSE 0
+END

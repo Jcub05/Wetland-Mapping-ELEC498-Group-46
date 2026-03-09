@@ -1,0 +1,123 @@
+{
+  "timestamp": "20260309_135808",
+  "trained_datetime": "2026-03-09 13:58:04",
+  "pipeline_stage": "Stage 2 \u2014 wetland classification (grid search)",
+  "split_method": "middle_row_band",
+  "test_row_min": 9216,
+  "test_row_max": 12288,
+  "classes": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "overall_metrics": {
+    "accuracy": 0.824142972768335,
+    "precision_weighted": 0.83096968575657,
+    "recall_weighted": 0.824142972768335,
+    "f1_weighted": 0.821030239497026,
+    "mean_wetland_f1": 0.7574952000122276
+  },
+  "per_class_metrics": {
+    "1": {
+      "precision": 0.5793670264965652,
+      "recall": 0.9827299209321682,
+      "f1_score": 0.7289705201419973,
+      "support": 4806
+    },
+    "2": {
+      "precision": 0.8900021714179359,
+      "recall": 0.7650933333333333,
+      "f1_score": 0.8228343633938942,
+      "support": 37500
+    },
+    "3": {
+      "precision": 0.8663317850624007,
+      "recall": 0.934072,
+      "f1_score": 0.8989275293139422,
+      "support": 125000
+    },
+    "4": {
+      "precision": 0.8310505777029612,
+      "recall": 0.5792533333333333,
+      "f1_score": 0.6826738741003803,
+      "support": 37500
+    },
+    "5": {
+      "precision": 0.6138572180319243,
+      "recall": 0.69992,
+      "f1_score": 0.6540697131109242,
+      "support": 25000
+    }
+  },
+  "confusion_matrix": [
+    [
+      4723,
+      32,
+      0,
+      0,
+      51
+    ],
+    [
+      2904,
+      28691,
+      0,
+      0,
+      5905
+    ],
+    [
+      27,
+      489,
+      116759,
+      4058,
+      3667
+    ],
+    [
+      8,
+      155,
+      14231,
+      21722,
+      1384
+    ],
+    [
+      490,
+      2870,
+      3784,
+      358,
+      17498
+    ]
+  ],
+  "confusion_matrix_labels": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "hyperparameters": {
+    "n_estimators": 300,
+    "max_depth": 25,
+    "min_samples_leaf": 20,
+    "feature_scaling": "none",
+    "class_weight": "recalculated_over_classes_1_to_5",
+    "class1_dampen_factor": 0.4,
+    "n_jobs": -1,
+    "random_state": 42
+  },
+  "dataset": {
+    "source": "../random_forest_spatial_middle/wetland_dataset_middle_split.npz",
+    "class_0_filtered": true,
+    "n_train": 914418,
+    "n_test": 229806,
+    "n_features": 64
+  },
+  "class_weights": {
+    "1": 5.073757802746567,
+    "2": 1.219224,
+    "3": 0.3657672,
+    "4": 1.219224,
+    "5": 1.828836
+  },
+  "train_seconds": 348.05933
+}

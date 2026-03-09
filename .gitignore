@@ -219,5 +219,4 @@ __marimo__/
 
 # Trained Models
 *.pt
-*_metadata.json
 project_blueprint.txt

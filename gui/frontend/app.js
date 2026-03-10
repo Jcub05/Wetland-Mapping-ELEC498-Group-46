@@ -2,12 +2,12 @@
 const CONFIG = {
     API_BASE_URL: 'http://localhost:5000',
     WETLAND_CLASSES: {
-        0: { name: 'Background', color: '#1a1a2e' },
-        1: { name: 'Marsh', color: '#16c79a' },
-        2: { name: 'Swamp', color: '#43b581' },
-        3: { name: 'Fen', color: '#7289da' },
-        4: { name: 'Bog', color: '#faa61a' },
-        5: { name: 'Open Water', color: '#ee5a6f' }
+        0: { name: 'Background',          color: '#1a1a2e' },
+        1: { name: 'Fen (Graminoid)',     color: '#7289da' },
+        2: { name: 'Fen (Woody)',         color: '#43b581' },
+        3: { name: 'Marsh',               color: '#16c79a' },
+        4: { name: 'Shallow Open Water',  color: '#ee5a6f' },
+        5: { name: 'Swamp',               color: '#faa61a' }
     },
     // Bow River Basin fallback coordinates (used only if GeoTIFF bounds unavailable)
     MAP_CENTER: [51.0447, -114.0719],

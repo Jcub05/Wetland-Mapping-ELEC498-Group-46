@@ -20,11 +20,11 @@ GEOTIFF_PATH = r"C:\Users\gavin\ELEC498\bow_river_wetlands_10m_final.tif"
 # Must match CONFIG.WETLAND_CLASSES in frontend/app.js
 WETLAND_CLASSES = {
     0: 'Background',
-    1: 'Marsh',
-    2: 'Swamp',
-    3: 'Fen',
-    4: 'Bog',
-    5: 'Open Water',
+    1: 'Fen (Graminoid)',
+    2: 'Fen (Woody)',
+    3: 'Marsh',
+    4: 'Shallow Open Water',
+    5: 'Swamp',
 }
 
 VALID_CLASS_MIN = 0

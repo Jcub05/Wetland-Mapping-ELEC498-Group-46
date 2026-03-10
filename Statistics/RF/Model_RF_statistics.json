@@ -1,159 +1,123 @@
 {
-  "timestamp": "20260306_020925",
-  "trained_datetime": "2026-03-06 02:10:12",
-  "pipeline_stage": "Standalone \u2014 full classification (Classes 0\u20135, no CNN upstream)",
+  "timestamp": "20260309_140516",
+  "trained_datetime": "2026-03-09 14:05:12",
+  "pipeline_stage": "Stage 2 \u2014 wetland classification (grid search)",
   "split_method": "middle_row_band",
   "test_row_min": 9216,
   "test_row_max": 12288,
   "classes": [
-    0,
     1,
     2,
     3,
     4,
     5
   ],
-  "note": "Class 0 (background) retained in both train and test. Class weights prior-corrected: real-world background prevalence is ~97% but training set is only ~40% background. Class 0 boosted by x2.448 (real_prior/train_prior). Class 1 dampened x0.4 (reduces bog false positives). Class 5 dampened x0.6 (counteracts open water over-prediction). Class 4 not dampened \u2014 caused instability in prior RF runs. Inference uses prior-adjusted probability thresholds (no Class 4 threshold).",
   "overall_metrics": {
-    "accuracy": 0.4676203114221471,
-    "precision_weighted": 0.6926922037807893,
-    "recall_weighted": 0.4676203114221471,
-    "f1_weighted": 0.36311258871701363
+    "accuracy": 0.8274588130858203,
+    "precision_weighted": 0.8354342447738975,
+    "recall_weighted": 0.8274588130858203,
+    "f1_weighted": 0.8240523290254345,
+    "mean_wetland_f1": 0.7602949106024852
   },
   "per_class_metrics": {
-    "0": {
-      "precision": 0.42910552470038,
-      "recall": 0.9786466666666667,
-      "f1_score": 0.5966145092460882,
-      "support": 150000
-    },
     "1": {
-      "precision": 0.6139869281045751,
-      "recall": 0.9773200166458593,
-      "f1_score": 0.75417469492614,
+      "precision": 0.5803363201178348,
+      "recall": 0.9837702871410736,
+      "f1_score": 0.7300239326796881,
       "support": 4806
     },
     "2": {
-      "precision": 0.9826722338204593,
-      "recall": 0.12552,
-      "f1_score": 0.222605816978009,
+      "precision": 0.8907992565055762,
+      "recall": 0.7668,
+      "f1_score": 0.8241616509028374,
       "support": 37500
     },
     "3": {
-      "precision": 0.8450262838657501,
-      "recall": 0.066872,
-      "f1_score": 0.1239361859858257,
+      "precision": 0.8666607640887157,
+      "recall": 0.939696,
+      "f1_score": 0.9017018891968035,
       "support": 125000
     },
     "4": {
-      "precision": 0.9507922338763669,
-      "recall": 0.22722666666666666,
-      "f1_score": 0.36679436959235506,
+      "precision": 0.8548821015983542,
+      "recall": 0.5762133333333334,
+      "f1_score": 0.6884159551420925,
       "support": 37500
     },
     "5": {
-      "precision": 0.7055520898315658,
-      "recall": 0.18096,
-      "f1_score": 0.2880427861963581,
+      "precision": 0.6161223704014841,
+      "recall": 0.70408,
+      "f1_score": 0.6571711250910042,
       "support": 25000
     }
   },
   "confusion_matrix": [
     [
-      146797,
-      305,
-      53,
-      1404,
-      114,
-      1327
+      4728,
+      30,
+      0,
+      0,
+      48
     ],
     [
-      109,
-      4697,
+      2899,
+      28755,
       0,
       0,
-      0,
-      0
+      5846
     ],
     [
-      30593,
-      2171,
-      4707,
-      0,
-      0,
-      29
+      29,
+      488,
+      117462,
+      3345,
+      3676
     ],
     [
-      116053,
-      16,
-      0,
-      8359,
-      321,
-      251
-    ],
-    [
-      28568,
-      9,
-      2,
-      119,
-      8521,
-      281
-    ],
-    [
-      19980,
-      452,
-      28,
       10,
-      6,
-      4524
+      147,
+      14338,
+      21608,
+      1397
+    ],
+    [
+      481,
+      2860,
+      3734,
+      323,
+      17602
     ]
   ],
   "confusion_matrix_labels": [
-    0,
     1,
     2,
     3,
     4,
     5
   ],
-  "timing": {
-    "total_train_seconds": 3889.51,
-    "avg_seconds_per_tree": 12.97,
-    "inference_seconds": 37.03
-  },
   "hyperparameters": {
     "n_estimators": 300,
-    "max_depth": 25,
-    "min_samples_leaf": 15,
+    "max_depth": 35,
+    "min_samples_leaf": 20,
     "feature_scaling": "none",
-    "class_weight": "prior_corrected_inverse_frequency",
-    "class0_prior_boost": 2.4483,
+    "class_weight": "recalculated_over_classes_1_to_5",
     "class1_dampen_factor": 0.4,
-    "class4_dampen_factor": "none",
-    "class5_dampen_factor": 0.6,
-    "prediction_thresholds": {
-      "0": 0.25,
-      "1": 0.35,
-      "5": 0.45
-    },
     "n_jobs": -1,
     "random_state": 42
   },
   "dataset": {
-    "source": "/content/drive/My Drive/CapstoneRFData/wetland_dataset_middle_split.npz",
-    "class_0_filtered": false,
-    "real_background_freq": 0.97,
-    "train_background_freq": 0.3962,
-    "n_train": 1514418,
-    "n_test": 379806,
+    "source": "../random_forest_spatial_middle/wetland_dataset_middle_split.npz",
+    "class_0_filtered": true,
+    "n_train": 914418,
+    "n_test": 229806,
     "n_features": 64
   },
   "class_weights": {
-    "0": 1.0299342696121667,
-    "1": 7.002441392703566,
-    "2": 1.6826866666666667,
-    "3": 0.504806,
-    "4": 1.6826866666666667,
-    "5": 1.514418
-  }
+    "1": 5.073757802746567,
+    "2": 1.219224,
+    "3": 0.3657672,
+    "4": 1.219224,
+    "5": 1.828836
+  },
+  "train_seconds": 381.851675
 }

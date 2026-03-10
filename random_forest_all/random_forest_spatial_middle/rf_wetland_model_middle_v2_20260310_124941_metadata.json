@@ -1,0 +1,131 @@
+{
+  "timestamp": "20260310_124941",
+  "trained_datetime": "2026-03-10 12:49:43",
+  "split_method": "middle_row_band",
+  "test_row_min": 9216,
+  "test_row_max": 12288,
+  "version": "v2 \u2014 adjusted class weights to fix background under-recall",
+  "weight_adjustments": {
+    "class0_boost": 1.8,
+    "class3_dampen": 0.7,
+    "class5_dampen": 0.85
+  },
+  "overall_metrics": {
+    "accuracy": 0.5923208164168022,
+    "precision_weighted": 0.5980941855038268,
+    "recall_weighted": 0.5923208164168022,
+    "f1_weighted": 0.5923759866055006,
+    "mean_f1_all_classes": 0.6011183556779024
+  },
+  "per_class_metrics": {
+    "0": {
+      "precision": 0.584367161086269,
+      "recall": 0.5715266666666666,
+      "f1_score": 0.5778755931837791,
+      "support": 150000
+    },
+    "1": {
+      "precision": 0.48035373329313635,
+      "recall": 0.9945900957136912,
+      "f1_score": 0.6478281493528495,
+      "support": 4806
+    },
+    "2": {
+      "precision": 0.7116361788617886,
+      "recall": 0.5975466666666667,
+      "f1_score": 0.6496202238070389,
+      "support": 37500
+    },
+    "3": {
+      "precision": 0.6201873496046751,
+      "recall": 0.57732,
+      "f1_score": 0.5979864103413988,
+      "support": 125000
+    },
+    "4": {
+      "precision": 0.5564627292969992,
+      "recall": 0.6997333333333333,
+      "f1_score": 0.6199279428267674,
+      "support": 37500
+    },
+    "5": {
+      "precision": 0.48475913031121215,
+      "recall": 0.5458,
+      "f1_score": 0.5134718145555807,
+      "support": 25000
+    }
+  },
+  "confusion_matrix": [
+    [
+      85729,
+      1156,
+      5363,
+      38232,
+      8621,
+      10899
+    ],
+    [
+      10,
+      4780,
+      12,
+      0,
+      0,
+      4
+    ],
+    [
+      11287,
+      3145,
+      22408,
+      0,
+      0,
+      660
+    ],
+    [
+      38675,
+      40,
+      445,
+      72165,
+      11691,
+      1984
+    ],
+    [
+      5158,
+      18,
+      153,
+      4975,
+      26240,
+      956
+    ],
+    [
+      5845,
+      812,
+      3107,
+      988,
+      603,
+      13645
+    ]
+  ],
+  "hyperparameters": {
+    "n_estimators": 200,
+    "max_depth": 25,
+    "min_samples_leaf": 20,
+    "feature_scaling": "StandardScaler",
+    "class_weight": "from_npz_with_adjustments",
+    "n_jobs": -1,
+    "random_state": 42
+  },
+  "dataset": {
+    "source": "wetland_dataset_middle_split.npz",
+    "n_train": 1514418,
+    "n_test": 379806,
+    "n_features": 64
+  },
+  "class_weights": {
+    "0": 0.1868038684129715,
+    "1": 4.318764686584473,
+    "2": 0.4151197075843811,
+    "3": 0.08717514276504516,
+    "4": 0.4151197075843811,
+    "5": 0.5292776525020599
+  }
+}

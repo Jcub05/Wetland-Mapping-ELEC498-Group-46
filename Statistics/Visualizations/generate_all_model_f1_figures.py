@@ -41,7 +41,7 @@ STATS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 FILES = {
     "CNN\n(U-Net v12)":   os.path.join(STATS_DIR, "CNN",       "Model_CNN_statistics.json"),
     "CNN+RF\nPipeline":   os.path.join(STATS_DIR, "CNN + RF",  "Model_CNN_to_RF_statistics.json"),
-    "RF\n(Spatial)":      os.path.join(STATS_DIR, "RF",        "3 - final_rf_wetland_model_56.json"),
+    "RF\n(Spatial)":      os.path.join(STATS_DIR, "..", "random_forest_all", "random_forest_spatial_middle", "rf_wetland_model_middle_v2_20260310_124941_metadata.json"),
     "RF+RF\nPipeline":    os.path.join(STATS_DIR, "RF + RF",   "final_Model_RF_to_RF_statistics_20260309_235639.json"),
     "SVM\n(RBF)":         os.path.join(STATS_DIR, "SVM",       "svm_metadata_20260309_170939 (1).json"),
     "SVM+SVM\nPipeline":  os.path.join(STATS_DIR, "SVM + SVM", "svm_combo_pipeline_stats_20260310_032810.json"),

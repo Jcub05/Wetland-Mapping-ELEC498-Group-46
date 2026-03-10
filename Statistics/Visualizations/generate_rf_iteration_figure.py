@@ -21,13 +21,17 @@ OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Final Sta
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ── Data ──────────────────────────────────────────────────────────────────────
-# Mean F1 across all 6 classes (0–5) for v1–v3; wetland-only (1–5) for v4
-milestones = [1, 2, 3, 4]
+# Mean F1 across all 6 classes (0–5) for v1–v3.5; wetland-only (1–5) for v4
+milestones = [1, 2, 3, 3.5, 4]
+
+_v3_f1 = (0.4066 + 0.6316 + 0.7231 + 0.6776 + 0.6593 + 0.4914) / 6
+_v35_f1 = 0.6011
 
 mean_wetland_f1 = [
     (0.9431 + 0.9762 + 0.9283 + 0.9382 + 0.9092 + 0.8652) / 6,  # v1: random split (leakage)
     (0.1362 + 0.8539 + 0.2395 + 0.2231 + 0.0003 + 0.0005) / 6,  # v2: spatial split, class issue
-    (0.4066 + 0.6316 + 0.7231 + 0.6776 + 0.6593 + 0.4914) / 6,  # v3: improved dataset/params
+    _v3_f1,                                                        # v3: improved dataset/params
+    _v35_f1,                                                       # v3.5: adjusted weights (bg fix)
     (0.7300 + 0.8242 + 0.9017 + 0.6884 + 0.6572) / 5,           # v4: background removed (classes 1–5 only)
 ]
 
@@ -35,19 +39,21 @@ labels = [
     "v1\n(Random Split)",
     "v2\n(Spatial Split)",
     "v3\n(Tuned Params)",
+    "v3.5\n(Bg Fixed)",
     "v4\n(No Background)",
 ]
 
 annotations = [
-    "93.3% accuracy — but\nspatial data leakage",
-    "Accuracy drops to 19.5%\n— class imbalance exposed",
-    "Iterated dataset &\nparameters: 59% accuracy",
-    "Background removed (classes 1–5 only)\nwetland-only pipeline: 82.7%",
+    f"Mean F1: {(0.9431+0.9762+0.9283+0.9382+0.9092+0.8652)/6:.1%} — but\nspatial data leakage",
+    f"Mean F1 drops to {(0.1362+0.8539+0.2395+0.2231+0.0003+0.0005)/6:.1%}\n— class imbalance exposed",
+    f"Iterated dataset &\nparameters: Mean F1 {_v3_f1:.1%}",
+    f"Adjusted class weights —\nbg recall improved: 0.28 → 0.57\nMean F1: {_v35_f1:.3f}",
+    f"Background removed (classes 1–5 only)\nwetland-only pipeline: Mean F1 {(0.7300+0.8242+0.9017+0.6884+0.6572)/5:.1%}",
 ]
 
 # Milestone types: 'bad' = inflated/misleading, 'drop' = regression, 'improve' = gain
-colors = ["#e05c5c", "#c0392b", "#2980b9", "#27ae60"]
-marker_styles = ["D", "v", "o", "^"]
+colors = ["#e05c5c", "#c0392b", "#2980b9", "#1abc9c", "#27ae60"]
+marker_styles = ["D", "v", "o", "s", "^"]
 
 # ── Plot ──────────────────────────────────────────────────────────────────────
 fig, ax = plt.subplots(figsize=(10, 6))
@@ -66,9 +72,10 @@ for i, (x, y, color, marker) in enumerate(zip(milestones, mean_wetland_f1, color
 
 # Annotation boxes
 annotation_offsets = [
-    (0.12, 0.06),    # v1 — shift right and up
-    (0.12, -0.13),   # v2 — shift right and down
-    (0.12, -0.13),   # v3 — shift right and down (avoid covering line to v4)
+    (0.10, 0.10),    # v1 — shift right and up (above spatial leakage zone text)
+    (0.10, -0.13),   # v2 — shift right and down
+    (-0.38, -0.16),  # v3 — shift left and down (avoid v3.5 annotation)
+    (0.10, 0.00),    # v3.5 — shift right and up
     (-0.55, 0.06),   # v4 — shift left and up
 ]
 

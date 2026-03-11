@@ -1,0 +1,131 @@
+{
+  "timestamp": "20260310_123338",
+  "trained_datetime": "2026-03-10 12:33:38",
+  "pipeline_stage": "Two-Stage Combination Pipeline Benchmark (v2)",
+  "split_method": "middle_row_band",
+  "test_row_min": 9216,
+  "test_row_max": 12288,
+  "note": "Benchmarking script designed to perfectly align parameters with the standalone RF middle split model.",
+  "overall_metrics": {
+    "accuracy": 0.5871523883245657,
+    "precision_weighted": 0.6117799996359546,
+    "recall_weighted": 0.5871523883245657,
+    "f1_weighted": 0.5707050242058429,
+    "mean_wetland_f1": 0.6024946600436282
+  },
+  "per_class_metrics": {
+    "0": {
+      "precision": 0.6339690699382263,
+      "recall": 0.39135333333333333,
+      "f1_score": 0.4839568665600422,
+      "support": 150000
+    },
+    "1": {
+      "precision": 0.5201949860724234,
+      "recall": 0.9325842696629213,
+      "f1_score": 0.6678587393831024,
+      "support": 4806
+    },
+    "2": {
+      "precision": 0.7249043463307683,
+      "recall": 0.44965333333333335,
+      "f1_score": 0.5550270732871414,
+      "support": 37500
+    },
+    "3": {
+      "precision": 0.5480087575589057,
+      "recall": 0.875056,
+      "f1_score": 0.673951552530969,
+      "support": 125000
+    },
+    "4": {
+      "precision": 0.7363132363132363,
+      "recall": 0.5666666666666667,
+      "f1_score": 0.6404460518384569,
+      "support": 37500
+    },
+    "5": {
+      "precision": 0.45862171615688024,
+      "recall": 0.493,
+      "f1_score": 0.4751898831784709,
+      "support": 25000
+    }
+  },
+  "confusion_matrix": [
+    [
+      58703,
+      596,
+      3649,
+      73342,
+      3467,
+      10243
+    ],
+    [
+      308,
+      4482,
+      9,
+      0,
+      0,
+      7
+    ],
+    [
+      16821,
+      2775,
+      16862,
+      0,
+      0,
+      1042
+    ],
+    [
+      9220,
+      28,
+      342,
+      109382,
+      3792,
+      2236
+    ],
+    [
+      1416,
+      18,
+      133,
+      13662,
+      21250,
+      1021
+    ],
+    [
+      6128,
+      717,
+      2266,
+      3213,
+      351,
+      12325
+    ]
+  ],
+  "hyperparameters": {
+    "n_estimators": 200,
+    "max_depth": 25,
+    "min_samples_leaf": 20,
+    "feature_scaling": "StandardScaler",
+    "n_jobs": -1,
+    "random_state": 42
+  },
+  "dataset": {
+    "source": "../random_forest_spatial_middle/wetland_dataset_middle_split.npz",
+    "n_train": 1514418,
+    "n_test": 379806,
+    "n_features": 64
+  },
+  "stage1_train_seconds": 173.868623,
+  "stage2_train_seconds": 93.498343,
+  "stage1_weights": {
+    "0": 1.262015,
+    "1": 0.8280775312821926
+  },
+  "stage2_weights_from_npz": {
+    "1": 4.318764686584473,
+    "2": 0.4151197075843811,
+    "3": 0.12453591823577881,
+    "4": 0.4151197075843811,
+    "5": 0.622679591178894
+  }
+}

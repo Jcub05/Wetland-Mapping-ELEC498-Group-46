@@ -1,0 +1,125 @@
+{
+  "timestamp": "20260310_013315",
+  "trained_datetime": "2026-03-10 01:33:15",
+  "split_method": "middle_row_band",
+  "test_row_min": 9216,
+  "test_row_max": 12288,
+  "note": "Middle row band split: test pixels are from tiles in the central latitude (rows 9216\u201312288). Training uses north + south tiles. All 6 classes are geographically separated \u2014 no within-zone random splits needed.",
+  "overall_metrics": {
+    "accuracy": 0.5902592376107803,
+    "precision_weighted": 0.65346955942227,
+    "recall_weighted": 0.5902592376107803,
+    "f1_weighted": 0.5606601525730156
+  },
+  "per_class_metrics": {
+    "0": {
+      "precision": 0.7575922597977818,
+      "recall": 0.27823333333333333,
+      "f1_score": 0.406994036735271,
+      "support": 150000
+    },
+    "1": {
+      "precision": 0.4629593810444874,
+      "recall": 0.996046608406159,
+      "f1_score": 0.6321140895285884,
+      "support": 4806
+    },
+    "2": {
+      "precision": 0.7270135807449241,
+      "recall": 0.7209066666666667,
+      "f1_score": 0.7239472450960701,
+      "support": 37500
+    },
+    "3": {
+      "precision": 0.5464309173439476,
+      "recall": 0.891784,
+      "f1_score": 0.677643297001234,
+      "support": 125000
+    },
+    "4": {
+      "precision": 0.717432920131806,
+      "recall": 0.6096266666666667,
+      "f1_score": 0.6591508685936711,
+      "support": 37500
+    },
+    "5": {
+      "precision": 0.39428917120387175,
+      "recall": 0.65176,
+      "f1_score": 0.49133810780248777,
+      "support": 25000
+    }
+  },
+  "confusion_matrix": [
+    [
+      41735,
+      1427,
+      6818,
+      76752,
+      4167,
+      19101
+    ],
+    [
+      3,
+      4787,
+      7,
+      0,
+      0,
+      9
+    ],
+    [
+      5077,
+      3356,
+      27034,
+      0,
+      0,
+      2033
+    ],
+    [
+      5849,
+      37,
+      446,
+      111473,
+      4464,
+      2731
+    ],
+    [
+      740,
+      17,
+      153,
+      12572,
+      22861,
+      1157
+    ],
+    [
+      1685,
+      716,
+      2727,
+      3205,
+      373,
+      16294
+    ]
+  ],
+  "hyperparameters": {
+    "n_estimators": 200,
+    "max_depth": 25,
+    "min_samples_leaf": 20,
+    "feature_scaling": "StandardScaler",
+    "class_weight": "from_npz",
+    "n_jobs": -1,
+    "random_state": 42
+  },
+  "dataset": {
+    "source": "random_forest_spatial_middle/wetland_dataset_middle_split.npz",
+    "n_train": 1514418,
+    "n_test": 379806,
+    "n_features": 64
+  },
+  "class_weights": {
+    "0": 0.10377992689609528,
+    "1": 4.318764686584473,
+    "2": 0.4151197075843811,
+    "3": 0.12453591823577881,
+    "4": 0.4151197075843811,
+    "5": 0.622679591178894
+  }
+}

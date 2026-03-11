@@ -171,8 +171,8 @@ def visualize(tif_path, output_path, title, figsize, dpi, alpha, max_pixels):
     rgba = build_rgba(data, alpha=alpha)
 
     # -- Figure setup --
-    fig, ax = plt.subplots(figsize=figsize, facecolor="black")
-    ax.set_facecolor("black")
+    fig, ax = plt.subplots(figsize=figsize, facecolor="white")
+    ax.set_facecolor("white")
 
     # Set extent so contextily knows which region to tile
     ax.set_xlim(west, east)
@@ -236,17 +236,17 @@ def visualize(tif_path, output_path, title, figsize, dpi, alpha, max_pixels):
         handles=legend_patches,
         loc="lower right",
         framealpha=0.82,
-        facecolor="#1a1a1a",
-        edgecolor="white",
+        facecolor="white",
+        edgecolor="#888888",
         fontsize=12,
         title="Wetland Class",
         title_fontsize=13,
-        labelcolor="white",
+        labelcolor="black",
     )
-    legend.get_title().set_color("white")
+    legend.get_title().set_color("black")
 
     # -- Title --
-    ax.set_title(title, fontsize=17, fontweight="bold", color="white", pad=14)
+    ax.set_title(title, fontsize=17, fontweight="bold", color="black", pad=14)
 
     # -- Basemap attribution (required for ESRI imagery use) --
     ax.text(
@@ -254,7 +254,7 @@ def visualize(tif_path, output_path, title, figsize, dpi, alpha, max_pixels):
         "Basemap: Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
         transform=ax.transAxes,
         fontsize=6,
-        color="white",
+        color="black",
         alpha=0.7,
         zorder=10,
     )
@@ -263,7 +263,7 @@ def visualize(tif_path, output_path, title, figsize, dpi, alpha, max_pixels):
     plt.tight_layout(pad=0.5)
 
     print(f"\nSaving to: {output_path}  (dpi={dpi})")
-    plt.savefig(output_path, dpi=dpi, bbox_inches="tight", facecolor="black")
+    plt.savefig(output_path, dpi=dpi, bbox_inches="tight", facecolor="white")
     print("Done.")
     plt.show()
 

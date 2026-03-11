@@ -185,8 +185,8 @@ def render_inset(tif_path, row_off, col_off, win_px, output_path,
 
     rgba = build_rgba(data, alpha=alpha)
 
-    fig, ax = plt.subplots(figsize=figsize, facecolor="black")
-    ax.set_facecolor("black")
+    fig, ax = plt.subplots(figsize=figsize, facecolor="white")
+    ax.set_facecolor("white")
     ax.set_xlim(west, east)
     ax.set_ylim(south, north)
     ax.set_aspect("equal")
@@ -226,25 +226,22 @@ def render_inset(tif_path, row_off, col_off, win_px, output_path,
         handles=legend_patches,
         loc="lower right",
         framealpha=0.82,
-        facecolor="#1a1a1a",
-        edgecolor="white",
+        facecolor="white",
+        edgecolor="#888888",
         fontsize=10,
-        labelcolor="white",
+        labelcolor="black",
     )
 
-    ax.set_title(
-        f"Detail View {inset_idx}  —  {subtitle}",
-        fontsize=13, fontweight="bold", color="white", pad=10,
-    )
+    ax.set_title("", pad=0)
     ax.text(
         0.01, 0.01,
         "Basemap: Esri, DigitalGlobe, GeoEye, Earthstar Geographics",
-        transform=ax.transAxes, fontsize=5, color="white", alpha=0.6, zorder=10,
+        transform=ax.transAxes, fontsize=5, color="black", alpha=0.6, zorder=10,
     )
     ax.set_axis_off()
     plt.tight_layout(pad=0.4)
 
-    plt.savefig(output_path, dpi=dpi, bbox_inches="tight", facecolor="black")
+    plt.savefig(output_path, dpi=dpi, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"    Saved: {output_path}")
 
